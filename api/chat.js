@@ -94,7 +94,7 @@ export default async function handler(request, response) {
           { role: "system", content: systemPrompt },
           ...messages
         ],
-        max_tokens: 500,
+        max_tokens: 2000,
         temperature: 0.4
       })
     });
