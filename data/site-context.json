@@ -12,31 +12,68 @@
     "email": "nguyenhoang88502@gmail.com",
     "linkedin": "https://linkedin.com/in/nguyenhoang88502"
   },
+  "education": {
+    "university": "Ho Chi Minh City University of Technology (HCMUT)",
+    "degree": "Bachelor of Engineering in Industrial Systems Engineering",
+    "expected_graduation": "2027",
+    "gpa": "3.3/4.0 (2025-2026)",
+    "certifications": "MOS Associate (Office 365 & 2019), TOEIC Listening & Reading 935/990"
+  },
+  "experience": [
+    {
+      "company": "Wahl Clipper Vietnam",
+      "role": "New Product Introduction (NPI) Intern",
+      "duration": "Mar 2026 - Present",
+      "highlights": "Modeled trimmer assembly line capacity, eliminated bottleneck cycle times, designed a custom Warehouse Management System (WMS), and reconciled BOMs for Mass Production authorization."
+    },
+    {
+      "company": "7-Eleven Vietnam",
+      "role": "Store Assistant",
+      "duration": "Jul 2024 - Nov 2024",
+      "highlights": "Managed daily retail operations, inventory replenishment, and transaction accuracy."
+    }
+  ],
+  "extracurriculars": [
+    "Project Leader at Bach Khoa Ambassador Club (BKFC) - Led orientation campaign reaching 12,363 views.",
+    "HR Member at Play & Learn English Club (PLEC) - Redesigned workflows improving team efficiency by 150%.",
+    "Event MC, Coordinator, and STEM Team Member at Mechanical Engineering Faculty Youth Union."
+  ],
   "technical_skills": {
     "data_and_process_simulation": "Power BI, SQL, Arena (Rockwell Automation), Crystal Ball (Oracle), Monte Carlo",
     "quality_and_manufacturing": "SPC, DMAIC, FMEA, Line Balancing, SOP Development, Minitab, AutoCAD 2D",
     "data_warehousing_and_ai": "Data Warehouse Design, Decision Support Systems, Data Mining, Machine Learning, Web AI / AI Apps, Ollama (LLama, Qwen)",
     "software_and_development": "MS Dynamics 365 (ERP), MS Project (Gantt, Critical Path), GitHub, Cursor, Claude Code (Vibe Coding), Web Dev (HTML/JS)"
   },
-  "key_tools": {
+  "projects_ordered_by_pride": {
+    "manufacturing-failure-analytics-pipeline": "Built a complete analytics pipeline for AI4I machine failure data: ETL, PostgreSQL star schema, OLAP exports, Streamlit dashboard, and XGBoost model.",
+    "dashboard": "Transformed raw analytical datasets into interactive Power BI dashboards highlighting key metrics and performance indicators.",
     "Small Warehouse Management System": "Warehouse stock app connected to a Google Apps Script webhook and Google Sheet, with stock review, inbound/outbound templates, cycle count checks, and warehouse layout search.",
-    "OPF_sim": "Trimmer assembly line simulation using Monte Carlo, time-study collection, Yamazumi analysis, and Arena simulation files to compare before/after production scenarios.",
-    "manufacturing-failure-analytics-pipeline": "ETL, PostgreSQL star schema, OLAP exports, Streamlit dashboard, and optional XGBoost model for machine failure analysis."
+    "OPF_sim": "Trimmer assembly line simulator using Monte Carlo, time-study collection, Yamazumi analysis, and Arena simulation files to compare before/after production scenarios.",
+    "decisionanalysis": "Applied Analytic Hierarchy Process (AHP) for customer segmentation and strategic decision analysis.",
+    "autocad2d": "AutoCAD 2D engineering graphics showcase with complex layer structures and dimensioning.",
+    "ergonomic": "Ergonomic kitchen workspace design project applying anthropometric data.",
+    "systemdesign": "Co-working space cafe system design project including life-cycle analysis and pricing strategy.",
+    "BKFC": "Career orientation campaign project leading content strategy and admission information resources."
   },
-  "other_projects": {
-    "dashboard": "Manufacturing performance and downtime dashboard showcase with Power BI artifacts.",
-    "inspection_standard_tool": "Browser tool for placing inspection-standard images and PDF pages into an Excel template.",
-    "decisionanalysis": "AHP customer segmentation and strategic decision analysis project.",
-    "autocad2d": "AutoCAD 2D engineering graphics showcase.",
-    "ergonomic": "Ergonomic kitchen workspace design project.",
-    "systemdesign": "Co-working space cafe system design project.",
-    "BKFC": "Career orientation campaign project and admission information resources."
+  "hobbies_and_lifestyle": {
+    "fitness": "Active runner and cyclist. Uses Strava for tracking. Trained for 10k/15k distances (VSM 2025 marathon goal: 10k in 1h10m). Explores beginner road bikes and TNGo.",
+    "languages": "Learning Chinese (HSK 1, character writing), with classes scheduled evenings from 17:45 to 20:15.",
+    "entertainment": "Enjoys critically acclaimed media (The Sopranos, The Big Bang Theory, David Lynch's Dune). Music tastes span R&B to Nu Metal (Playboi Carti).",
+    "style_and_leisure": "Interested in 'Dad Core' fashion and thrifting in Ho Chi Minh City. Frequents local cafes like Bamos Coffee Tea and The Coffee House. Enjoys Johnnie Walker whiskey.",
+    "community": "Google Maps contributor (submitted local navigation edits for Long Trường ward administrative buildings)."
+  },
+  "personal_relationships": {
+    "brother": "Has a brother 6 years younger; actively supports his learning by creating educational materials for him.",
+    "father": "Describes father as hardworking; actively seeking to reconnect and bridge their distant relationship through shared interests like bonsai.",
+    "mentor": "Maintains a close professional dynamic with mentor Ngân La, receiving guidance on career trajectory, CV development, and professional growth."
   },
   "assistant_guidance": [
     "Answer as the portfolio assistant for visitors, recruiters, and collaborators.",
     "Keep answers concise, professional, and grounded in the listed projects and technical skills.",
     "Highlight production analytics, SPC, simulation, dashboarding, NPI workflow tooling, and data-driven manufacturing work.",
     "Reference specific tools (like Power BI, Arena, SQL, Claude Code) when discussing how projects were executed.",
+    "When discussing projects, prioritize them based on the 'projects_ordered_by_pride' list, as this reflects the owner's level of pride in the work.",
+    "Incorporate the owner's hobbies, lifestyle, and personal background naturally if users ask personal or icebreaker questions to humanize the portfolio.",
     "Do not claim access to private files, private data, or live systems.",
     "If asked about implementation details, explain the repository structure and point to relevant project folders."
   ]
