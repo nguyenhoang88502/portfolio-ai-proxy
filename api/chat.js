@@ -1,119 +1,83 @@
-import fs from "fs";
-import path from "path";
+import fs from 'fs';
+import path from 'path';
+import * as cheerio from 'cheerio';
 
-const DEFAULT_ALLOWED_ORIGIN = "https://nguyenhoang88502.github.io";
-const DEFAULT_MODEL = "deepseek-v4-pro";
-const MAX_MESSAGES = 16;
-const MAX_MESSAGE_LENGTH = 3000;
-
-function parseBody(request) {
-  if (!request.body) return {};
-  if (typeof request.body === "string") {
-    return JSON.parse(request.body);
-  }
-  return request.body;
-}
-
-function normalizeMessages(messages) {
-  if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_MESSAGES) {
-    throw new Error("Invalid messages");
-  }
-
-  return messages.map((message) => {
-    const role = message?.role === "assistant" ? "assistant" : "user";
-    const content = String(message?.content || "").trim().slice(0, MAX_MESSAGE_LENGTH);
-
-    if (!content) {
-      throw new Error("Empty message");
-    }
-
-    return { role, content };
-  });
-}
-
-function loadSiteContext() {
-  const contextPath = path.resolve(process.cwd(), "data", "site-context.json");
-  return JSON.parse(fs.readFileSync(contextPath, "utf8"));
-}
-
-function buildSystemPrompt(siteContext) {
-  return [
-    `You are the AI assistant for ${siteContext.owner}'s portfolio.`,
-    `Role: ${siteContext.role}.`,
-    `Core focus: ${siteContext.core_focus}`,
-    `Key projects and tools: ${JSON.stringify(siteContext.key_tools)}.`,
-    `Other projects: ${JSON.stringify(siteContext.other_projects)}.`,
-    `Contact: ${JSON.stringify(siteContext.contact)}.`,
-    "Be concise, professional, and helpful.",
-    "Do not invent credentials, private details, or live system access.",
-    "When useful, mention the exact project folder or page a visitor should open."
-  ].join("\n");
-}
+let cachedPortfolioText = null;
+let lastScrapeTime = 0;
+const CACHE_LIFETIME = 3600000;
 
 export default async function handler(request, response) {
-  const allowedOrigin = process.env.ALLOWED_ORIGIN || DEFAULT_ALLOWED_ORIGIN;
-  const origin = request.headers.origin;
+  const allowedOrigin = process.env.ALLOWED_ORIGIN || 'https://nguyenhoang88502.github.io';
+  response.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+  response.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  response.setHeader("Access-Control-Allow-Origin", allowedOrigin);
-  response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  response.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  response.setHeader("Vary", "Origin");
-
-  if (request.method === "OPTIONS") {
-    return response.status(200).end();
-  }
-
-  if (origin && origin !== allowedOrigin) {
-    return response.status(403).json({ error: "Origin not allowed" });
-  }
-
-  if (request.method !== "POST") {
-    response.setHeader("Allow", "POST, OPTIONS");
-    return response.status(405).json({ error: "Method not allowed" });
-  }
-
-  if (!process.env.DEEPSEEK_API_KEY) {
-    return response.status(500).json({ error: "DeepSeek API key is not configured" });
-  }
+  if (request.method === 'OPTIONS') return response.status(200).end();
+  if (request.method !== 'POST') return response.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const body = parseBody(request);
-    const messages = normalizeMessages(body.messages);
-    const siteContext = loadSiteContext();
-    const systemPrompt = buildSystemPrompt(siteContext);
+    const contextPath = path.resolve(process.cwd(), 'data', 'site-context.json');
+    const siteContext = JSON.parse(fs.readFileSync(contextPath, 'utf8'));
 
-    const deepseekResponse = await fetch("https://api.deepseek.com/chat/completions", {
-      method: "POST",
+    if (!cachedPortfolioText || Date.now() - lastScrapeTime > CACHE_LIFETIME) {
+      console.log("Scraping fresh context from the live site...");
+      const siteResponse = await fetch('https://nguyenhoang88502.github.io');
+      const html = await siteResponse.text();
+      const $ = cheerio.load(html);
+
+      $('nav, script, style, footer').remove();
+
+      const sectionsToScrape = ['#hero', '#Education', '#skills', '#experience', '#extra', '#projects'];
+      let scrapedData = '';
+
+      sectionsToScrape.forEach(id => {
+        const sectionText = $(id).text().replace(/\s+/g, ' ').trim();
+        if (sectionText) scrapedData += sectionText + '\n\n';
+      });
+
+      cachedPortfolioText = scrapedData;
+      lastScrapeTime = Date.now();
+    }
+
+    const SYSTEM_PROMPT = `You are the AI assistant for ${siteContext.owner}'s portfolio.
+    You have two sources of knowledge.
+
+    SOURCE 1: DEEP PERSONAL & STRUCTURAL CONTEXT:
+    ${JSON.stringify(siteContext)}
+
+    SOURCE 2: LIVE WEBSITE TEXT (Up-to-date project and resume details):
+    ${cachedPortfolioText}
+
+    INSTRUCTIONS:
+    - Base your answers on a combination of both sources.
+    - Prioritize project discussions based on the 'projects_ordered_by_pride' list in Source 1.
+    - If the user asks personal questions, weave in the hobbies, lifestyle, and relationship details from Source 1 naturally to humanize the response.
+    - Provide detailed, professional answers.
+    - Do not claim access to private systems or files.`;
+
+    const { messages } = request.body;
+
+    const deepseekResponse = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
       },
       body: JSON.stringify({
-        model: process.env.DEEPSEEK_MODEL || DEFAULT_MODEL,
+        model: 'deepseek-chat',
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: 'system', content: SYSTEM_PROMPT },
           ...messages
         ],
-        max_tokens: 2000,
-        temperature: 0.4
-      })
+        max_tokens: 2000
+      }),
     });
 
     const data = await deepseekResponse.json();
+    return response.status(200).json({ text: data.choices[0].message.content });
 
-    if (!deepseekResponse.ok) {
-      return response.status(deepseekResponse.status).json({
-        error: data?.error?.message || "DeepSeek request failed"
-      });
-    }
-
-    const text = data?.choices?.[0]?.message?.content || "";
-    return response.status(200).json({ text });
   } catch (error) {
-    console.error(error);
-    const status = error.message === "Invalid messages" || error.message === "Empty message" ? 400 : 500;
-    return response.status(status).json({
-      error: status === 400 ? error.message : "Internal Server Error"
-    });
+    console.error("Error in AI Proxy:", error);
+    return response.status(500).json({ error: 'Internal Server Error' });
   }
 }
