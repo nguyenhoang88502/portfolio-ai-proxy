@@ -158,6 +158,52 @@ export function extractJson(text) {
   return null;
 }
 
+/**
+ * Ask for JSON and actually get it.
+ *
+ * DeepSeek's json_object mode is documented to occasionally return empty
+ * content, and models sometimes wrap JSON in prose regardless. So: try JSON
+ * mode, and if nothing parses, retry once in plain mode with a blunter
+ * instruction. Throws JsonCallError (carrying the raw text) only if both fail,
+ * so callers can surface something debuggable instead of a bare code.
+ */
+export class JsonCallError extends Error {
+  constructor(raw) {
+    super('unparseable_model_output');
+    this.name = 'JsonCallError';
+    this.raw = String(raw || '').slice(0, 400);
+  }
+}
+
+export async function callJson({ system, messages, maxTokens = 800, temperature = 0.2 }) {
+  let lastRaw = '';
+
+  for (const attempt of ['json', 'plain']) {
+    const sys = attempt === 'json'
+      ? system
+      : system + '\n\nQUAN TRONG: chi in ra JSON thuan, bat dau bang { va ket thuc bang }. ' +
+        'Khong them loi dan, khong giai thich, khong dung markdown code fence.';
+    try {
+      const text = await callDeepSeek({
+        system: sys,
+        messages,
+        maxTokens,
+        temperature,
+        jsonMode: attempt === 'json',
+      });
+      lastRaw = text;
+      const parsed = extractJson(text);
+      if (parsed && typeof parsed === 'object') return parsed;
+      console.error(`[proxy] ${attempt} attempt returned unparseable output:`, String(text).slice(0, 200));
+    } catch (err) {
+      // A transport/API failure should surface as-is rather than as a parse error.
+      if (attempt === 'plain') throw err;
+      console.error('[proxy] json-mode call failed, retrying plain:', err?.message || err);
+    }
+  }
+  throw new JsonCallError(lastRaw);
+}
+
 export function fail(response, status, code, detail) {
   if (detail) console.error(`[proxy] ${code}:`, detail);
   return response.status(status).json({ error: code });

@@ -25,8 +25,10 @@
 import {
   applyCors,
   callDeepSeek,
+  callJson,
   extractJson,
   sanitizeMessages,
+  JsonCallError,
   fail,
 } from './_shared.js';
 
@@ -88,16 +90,12 @@ async function taskNormalize(body) {
     diachi ? `Địa chỉ: ${diachi}` : '',
   ].filter(Boolean).join('\n');
 
-  const text = await callDeepSeek({
+  const parsed = await callJson({
     system,
     messages: [{ role: 'user', content: user }],
-    maxTokens: 600,
+    maxTokens: 700,
     temperature: 0.2,
-    jsonMode: true,
   });
-
-  const parsed = extractJson(text);
-  if (!parsed || typeof parsed !== 'object') return { error: 'unparseable_model_output' };
 
   const catValues = cats.map((c) => c.v);
   const item = {
@@ -172,14 +170,12 @@ async function geocodeWithModel(address) {
   ].join('\n');
 
   try {
-    const text = await callDeepSeek({
+    const parsed = await callJson({
       system,
       messages: [{ role: 'user', content: address }],
-      maxTokens: 120,
+      maxTokens: 160,
       temperature: 0,
-      jsonMode: true,
     });
-    const parsed = extractJson(text) || {};
     const lat = Number(parsed.lat);
     const lng = Number(parsed.lng);
     if (inSaigon(lat, lng)) return { lat, lng, display: address, source: 'ai' };
@@ -222,15 +218,19 @@ async function taskSuggest(body) {
     `Câu trả lời của người dùng:\n${JSON.stringify(answers, null, 1)}\n\n` +
     `Ứng viên:\n${JSON.stringify(compact)}`;
 
-  const text = await callDeepSeek({
-    system,
-    messages: [{ role: 'user', content: user }],
-    maxTokens: 800,
-    temperature: 0.4,
-    jsonMode: true,
-  });
+  let parsed = null;
+  try {
+    parsed = await callJson({
+      system,
+      messages: [{ role: 'user', content: user }],
+      maxTokens: 900,
+      temperature: 0.4,
+    });
+  } catch (err) {
+    console.error('[proxy] suggest failed:', err?.message || err);
+    return { picks: [] };
+  }
 
-  const parsed = extractJson(text);
   const valid = new Set(compact.map((p) => p.id));
   const picks = Array.isArray(parsed?.picks)
     ? parsed.picks
@@ -286,6 +286,10 @@ export default async function handler(request, response) {
     if (result && result.error) return fail(response, 422, result.error);
     return response.status(200).json(result);
   } catch (err) {
+    if (err instanceof JsonCallError) {
+      console.error('[proxy] model output was not JSON:', err.raw);
+      return response.status(422).json({ error: 'unparseable_model_output', raw: err.raw });
+    }
     const msg = String(err?.message || err);
     if (msg === 'missing_api_key') return fail(response, 500, 'ai_not_configured', msg);
     return fail(response, 502, 'upstream_failed', msg);
