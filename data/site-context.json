@@ -17,41 +17,62 @@
     "degree": "Bachelor of Engineering in Industrial Systems Engineering",
     "expected_graduation": "2027",
     "gpa": "3.3/4.0 (2025-2026)",
-    "certifications": "MOS Associate (Office 365 & 2019), TOEIC Listening & Reading 935/990"
+    "certifications": [
+      "Lean Six Sigma Yellow Belt – LSSI Learn, CSSC-accredited (Certificate No. 189475716)",
+      "MOS Associate (Office 365 & 2019) – IIG Vietnam",
+      "TOEIC Listening & Reading 935/990 – IIG Vietnam"
+    ]
   },
   "experience": [
     {
       "company": "Wahl Clipper Vietnam",
       "role": "New Product Introduction (NPI) Intern",
-      "duration": "Mar 2026 - Present",
-      "highlights": "Modeled trimmer assembly line capacity, eliminated bottleneck cycle times, designed a custom Warehouse Management System (WMS), and reconciled BOMs for Mass Production authorization."
+      "duration": "Mar 2026 – Present",
+      "location": "Cần Giuộc, Long An",
+      "highlights": [
+        "Developed the Master Carton Fit Tool, reducing fit-analysis setup from ~15 minutes to 1 minute per FG (93%), saving an estimated 42 technician-hours / VND 3.4M annually across 180 transfers, and preventing recurrence of 71 operator-hours / VND 4.26M in 2025 carton-fit trial downtime.",
+        "Built the Inspection Standard Tool around a 52,929-row weekly BOM with image/PDF handling and Excel-template generation; reduced prep time from ~40 to 10 minutes (75%) and eliminated missing parts in inspection docs.",
+        "Reduced full-drive engineering-file lookup from repeated 15-minute searches to under 1 minute with the Engineering File Search Tool / Digital 5S, saving an estimated 4 hours / VND 16.6M annually per technician.",
+        "Built OPF Sim for mobile multi-cycle time studies and Monte Carlo line balancing, running up to 100,000 scenarios with Yamazumi, VA/NVA, and takt-probability outputs.",
+        "Supported FAI, PFMEA, Control Plans, ECN reviews, trial assemblies, supplier-localization drawings, and BOM/route validation in Microsoft Dynamics 365 F&O.",
+        "Automated monthly CAPEX reporting for 18 projects with Python/openpyxl and built Power BI OPEX/downtime views for plan-vs-actual, variance, utilization, Pareto, and production-loss analysis.",
+        "Implemented Digital 5S through a portable web app with 14-day cache, targeting full-drive searches under 1 minute with no server, internet, or admin rights required.",
+        "Executed FAI, PFMEA, Control Plan, ECN, quality-batch, and D365 BOM/route work across 30+ product platforms and 100+ SKU variants, including 9+ localization drawing packages and documentation for 30+ carton designs."
+      ]
     },
     {
       "company": "7-Eleven Vietnam",
       "role": "Store Assistant",
-      "duration": "Jul 2024 - Nov 2024",
-      "highlights": "Managed daily retail operations, inventory replenishment, and transaction accuracy."
+      "duration": "Jul 2024 – Nov 2024",
+      "highlights": [
+        "Managed daily retail operations, inventory replenishment, and transaction accuracy in a high-footfall convenience setting."
+      ]
     }
   ],
   "extracurriculars": [
-    "Project Leader at Bach Khoa Ambassador Club (BKFC) - Led orientation campaign reaching 12,363 views.",
-    "HR Member at Play & Learn English Club (PLEC) - Redesigned workflows improving team efficiency by 150%.",
-    "Event MC, Coordinator, and STEM Team Member at Mechanical Engineering Faculty Youth Union."
+    "Project Leader at Bach Khoa Ambassador Club (BKFC) – Led a 6-month university orientation campaign at Nguyen Huu Canh High School, using content analytics to achieve 6,347 total views and 89.3% reach from non-followers. Pivoted to short-form video, driving 73.5% of total views while reducing production time per unit of reach.",
+    "HR Member at Play & Learn English Club (PLEC) – Standardized tracking and task ownership for a 15-member team, improving deadline visibility and reducing missed handoffs.",
+    "Event MC, Coordinator & STEM Team Member at Mechanical Engineering Faculty Youth Union – Developed MC runbooks and logistics for a 90-participant traditional camp with zero scheduling disruptions; structured STEM project milestones delivering 100% on-time completion."
   ],
   "technical_skills": {
-    "data_and_process_simulation": "Power BI, SQL, Arena (Rockwell Automation), Crystal Ball (Oracle), Monte Carlo",
-    "quality_and_manufacturing": "SPC, DMAIC, FMEA, Line Balancing, SOP Development, Minitab, AutoCAD 2D",
-    "data_warehousing_and_ai": "Data Warehouse Design, Decision Support Systems, Data Mining, Machine Learning, Web AI / AI Apps, Ollama (LLama, Qwen)",
-    "software_and_development": "MS Dynamics 365 (ERP), MS Project (Gantt, Critical Path), GitHub, Cursor, Claude Code (Vibe Coding), Web Dev (HTML/JS)"
+    "manufacturing_analytics": "Power BI, SQL, Python/pandas, Minitab, SPC, Monte Carlo, Time Study, Line Balancing / Yamazumi, Capacity Analysis",
+    "process_and_quality": "DMAIC, PFMEA, Control Plan, FAI, ECN, BOM Reconciliation, SOP/WI Development, NPI Stage-Gate Support, 7 QC Tools",
+    "automation_and_applications": "PowerShell 5.1, Python/openpyxl, Google Apps Script, HTML/CSS/JavaScript, React, D3.js, SheetJS / JSZip, Offline-first Browser Apps",
+    "enterprise_and_engineering_tools": "Microsoft Dynamics 365 F&O, SharePoint, Git/GitHub, AutoCAD 2D, Arena, Crystal Ball, MS Project"
   },
   "projects_ordered_by_pride": {
+    "inspection_standard_tool": "Built a React/PowerShell offline-first application with drag-and-drop images, PDF cropping, weekly BOM lookup across 52,929 rows, caching, and template-based Excel generation; reduced prep time from ~40 to 10 minutes (75%).",
+    "master_carton_fit_tool": "Built an offline browser application with Excel/CSV preprocessing, six-orientation packing, FG lookup, current-vs-suggested carton audits, ranked alternatives, synchronized 3D comparison, CSV/PDF exports, and batch set-cover analysis for shared-carton opportunities.",
+    "opf_sim": "Built a mobile multi-cycle stopwatch and browser simulator using localStorage, triangular Monte Carlo up to 100,000 scenarios, D3.js Yamazumi analysis, VA/semi-VA/NVA breakdown, takt probability, and before/after balancing with JSZip Excel exports.",
     "manufacturing-failure-analytics-pipeline": "Built a complete analytics pipeline for AI4I machine failure data: ETL, PostgreSQL star schema, OLAP exports, Streamlit dashboard, and XGBoost model.",
+    "npi_capex_opex_reporting": "Built a Python/openpyxl Excel workflow for monthly IR Plan vs PO Actual, KPI cards, PO status, and category analysis, plus a Power BI OPEX dashboard for actual-vs-approved spend, utilization, variance, monthly trends, and Pareto.",
+    "engineering_file_search": "Implemented Digital 5S through a portable web app with 14-day cache, targeting full-drive searches under 1 minute without server, internet, or admin rights.",
+    "npi_onboarding_package": "Created a searchable, print-ready HTML package covering NPI/EPM overviews, documentation guidance, risk/problem solving, project tracking, 30/60/90-day plan, quick-reference cards, and training checklist with A4 print support.",
     "dashboard": "Transformed raw analytical datasets into interactive Power BI dashboards highlighting key metrics and performance indicators.",
-    "Small Warehouse Management System": "Warehouse stock app connected to a Google Apps Script webhook and Google Sheet, with stock review, inbound/outbound templates, cycle count checks, and warehouse layout search.",
-    "OPF_sim": "Trimmer assembly line simulator using Monte Carlo, time-study collection, Yamazumi analysis, and Arena simulation files to compare before/after production scenarios.",
+    "wms": "Warehouse stock app connected to a Google Apps Script webhook and Google Sheet, with stock review, inbound/outbound templates, cycle count checks, and warehouse layout search.",
     "decisionanalysis": "Applied Analytic Hierarchy Process (AHP) for customer segmentation and strategic decision analysis.",
-    "autocad2d": "AutoCAD 2D engineering graphics showcase with complex layer structures and dimensioning.",
-    "ergonomic": "Ergonomic kitchen workspace design project applying anthropometric data.",
+    "autocad2d": "AutoCAD 2D engineering graphics showcase with orthographic projections, section views, and dimensioning.",
+    "ergonomic": "Ergonomic kitchen workspace design project applying anthropometric data and 5S storage logic.",
     "systemdesign": "Co-working space cafe system design project including life-cycle analysis and pricing strategy.",
     "BKFC": "Career orientation campaign project leading content strategy and admission information resources."
   },
@@ -68,13 +89,19 @@
     "mentor": "Maintains a close professional dynamic with mentor Ngân La, receiving guidance on career trajectory, CV development, and professional growth."
   },
   "assistant_guidance": [
-    "Answer as the portfolio assistant for visitors, recruiters, and collaborators.",
-    "Keep answers concise, professional, and grounded in the listed projects and technical skills.",
+    "Answer as the portfolio assistant for Nguyen Huy Hoang, welcoming visitors, recruiters, and collaborators.",
+    "Keep answers concise, professional, and grounded in the listed projects, technical skills, and professional experience.",
     "Highlight production analytics, SPC, simulation, dashboarding, NPI workflow tooling, and data-driven manufacturing work.",
     "Reference specific tools (like Power BI, Arena, SQL, Claude Code) when discussing how projects were executed.",
     "When discussing projects, prioritize them based on the 'projects_ordered_by_pride' list.",
+    "Emphasize the measurable impact of NPI internship work at Wahl Clipper Vietnam, such as the 75% time reduction with the Inspection Standard Tool, the 93% setup time reduction for the Master Carton Fit Tool, and the development of the OPF Sim.",
+    "For resume-related inquiries, confirm that Nguyen Huy Hoang is currently an NPI Intern at Wahl Clipper Vietnam, pursuing a Bachelor of Engineering in Industrial Systems Engineering at HCMUT, and holds certifications in Lean Six Sigma Yellow Belt and MOS Associate. Always direct users to the official resume PDF for the most detailed and formal version.",
     "Incorporate the owner's hobbies, lifestyle, and personal background naturally if users ask personal or icebreaker questions to humanize the portfolio.",
     "Do not claim access to private files, private data, or live systems.",
-    "If asked about implementation details, explain the repository structure and point to relevant project folders."
+    "If asked about implementation details, explain the repository structure and point to relevant project folders.",
+    "Maintain a professional tone that reflects an Industrial Systems Engineering student and NPI intern with a passion for data-driven manufacturing solutions.",
+    "Acknowledge his engagement in extracurricular leadership roles at Bach Khoa Ambassador Club, Play & Learn English Club, and the Mechanical Engineering Faculty Youth Union.",
+    "If asked about career goals, mention his focus on roles in Data Analytics in Manufacturing, process automation, and quantitative modeling.",
+    "Incorporate personal interests such as running, cycling, and learning Chinese when relevant to humanize the response."
   ]
 }
