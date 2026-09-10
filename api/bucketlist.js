@@ -14,6 +14,12 @@
  *         OpenStreetMap / Nominatim, called server-side so the browser never
  *         hits their rate limit directly and no key is needed.
  *
+ *   task: "query"      { q, vocab, hasLocation }
+ *       -> { category, moods[], maxKm, status, keywords[], note }
+ *         Turns a free-text search ("quan ca phe yen tinh gan day") into the
+ *         same filter facets the app already applies locally, so one typed
+ *         sentence replaces every chip row.
+ *
  *   task: "suggest"    { answers, places[] }
  *       -> { picks: [{ id, reason }] }
  *         Ranks candidate places against the onboarding answers.
@@ -185,6 +191,55 @@ async function geocodeWithModel(address) {
   return { lat: null, lng: null, display: '', source: 'none' };
 }
 
+async function taskQuery(body) {
+  const { cats, moods } = vocabOf(body);
+  const q = String(body.q || '').trim().slice(0, 400);
+  if (!q) return { error: 'empty_query' };
+  const hasLocation = !!body.hasLocation;
+
+  const system = [
+    'Bạn là bộ phân tích câu tìm kiếm cho "Sổ Vé" — sổ tay địa điểm ở Sài Gòn.',
+    'Người dùng gõ một câu tự nhiên. Việc của bạn là dịch nó thành bộ lọc.',
+    '',
+    'Quy tắc:',
+    `- "category": ĐÚNG một trong ${cats.map((c) => `${c.v} (${c.label})`).join(', ')}, hoặc "all" nếu câu không nghiêng hẳn về nhóm nào.`,
+    `- "moods": 0-2 giá trị, chỉ lấy từ: ${moods.join(', ')}. Để [] nếu không rõ tâm trạng.`,
+    '- "maxKm": số km nếu người dùng nói "gần đây", "gần tôi", "quanh đây" (gần đây = 3), hoặc nêu số km cụ thể. Ngược lại 0.',
+    hasLocation
+      ? '- Người dùng ĐANG bật vị trí, nên dùng maxKm thoải mái khi câu có ý "gần".'
+      : '- Người dùng CHƯA bật vị trí; vẫn đặt maxKm nếu câu có ý "gần", app sẽ tự hỏi quyền.',
+    '- "status": "visited" nếu họ muốn xem lại chỗ đã ghé, "new" nếu muốn chỗ chưa ghé, ngược lại "all".',
+    '- "keywords": 1-4 từ khoá tiếng Việt ngắn để dò trong tên/mô tả/địa chỉ (vd "cà phê", "quận 1", "hoàng hôn").',
+    '  Chỉ lấy từ khoá thật sự có khả năng xuất hiện trong tên hoặc địa chỉ. Bỏ từ chỉ tâm trạng — cái đó đã nằm ở "moods".',
+    '  Nếu câu quá chung chung thì để [].',
+    '- "note": một câu tiếng Việt tối đa 70 ký tự, nói bạn hiểu họ muốn gì.',
+    '- Không bịa nhãn ngoài danh sách trên.',
+    '',
+    'Trả về DUY NHẤT: {"category":"","moods":[],"maxKm":0,"status":"all","keywords":[],"note":""}',
+  ].join('\n');
+
+  const parsed = await callJson({
+    system,
+    messages: [{ role: 'user', content: q }],
+    maxTokens: 400,
+    temperature: 0.1,
+  });
+
+  const catValues = cats.map((c) => c.v);
+  return {
+    category: catValues.includes(parsed.category) ? parsed.category : 'all',
+    moods: Array.isArray(parsed.moods)
+      ? parsed.moods.map(String).filter((m) => moods.includes(m)).slice(0, 2)
+      : [],
+    maxKm: Number.isFinite(Number(parsed.maxKm)) ? Math.min(Math.max(Number(parsed.maxKm), 0), 50) : 0,
+    status: ['all', 'visited', 'new'].includes(parsed.status) ? parsed.status : 'all',
+    keywords: Array.isArray(parsed.keywords)
+      ? parsed.keywords.map((k) => String(k).trim()).filter(Boolean).slice(0, 4)
+      : [],
+    note: String(parsed.note || '').slice(0, 140),
+  };
+}
+
 async function taskSuggest(body) {
   const answers = body.answers && typeof body.answers === 'object' ? body.answers : {};
   const places = Array.isArray(body.places) ? body.places.slice(0, 120) : [];
@@ -278,7 +333,8 @@ export default async function handler(request, response) {
     switch (task) {
       case 'normalize': result = await taskNormalize(body); break;
       case 'geocode':   result = await taskGeocode(body);   break;
-      case 'suggest':   result = await taskSuggest(body);   break;
+      case 'query':     result = await taskQuery(body);    break;
+      case 'suggest':   result = await taskSuggest(body);  break;
       case 'chat':      result = await taskChat(body);      break;
       default:
         return fail(response, 400, 'unknown_task', task);
