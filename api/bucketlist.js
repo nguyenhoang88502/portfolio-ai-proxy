@@ -120,7 +120,8 @@ async function taskNormalize(body) {
 
 async function taskGeocode(body) {
   const address = String(body.address || '').trim().slice(0, 300);
-  if (!address) return { lat: null, lng: null, display: '' };
+  const name = String(body.name || '').trim().slice(0, 120);
+  if (!address && !name) return { lat: null, lng: null, display: '' };
 
   const q = /h[oò]\s*ch[ií]\s*minh|tp\.?\s*hcm|s[aà]i\s*g[oò]n/i.test(address)
     ? address
@@ -134,6 +135,7 @@ async function taskGeocode(body) {
   // Nominatim first -- it is authoritative and free. If it is unreachable,
   // rate-limited, or has never heard of the place, fall back to the model,
   // which is good enough to put a pin on the right block of Saigon.
+  let osmNote = 'not_tried';
   try {
     const res = await fetch(url, {
       headers: {
@@ -152,13 +154,19 @@ async function taskGeocode(body) {
         if (inSaigon(lat, lng)) {
           return { lat, lng, display: String(hit.display_name || ''), source: 'osm' };
         }
+        osmNote = 'hit_outside_saigon';
+      } else {
+        osmNote = 'no_results';
       }
     }
+    osmNote = `no_match_http_${res.status}`;
   } catch (err) {
+    osmNote = `unreachable: ${String(err?.message || err).slice(0, 120)}`;
     console.error('[proxy] nominatim unavailable:', err?.message || err);
   }
 
-  return await geocodeWithModel(address);
+  const viaModel = await geocodeWithModel(name, address);
+  return { ...viaModel, osm: osmNote };
 }
 
 /** Saigon-ish sanity box, so a bad hit never lands a pin in another province. */
@@ -167,24 +175,40 @@ function inSaigon(lat, lng) {
     lat > 10.3 && lat < 11.2 && lng > 106.3 && lng < 107.1;
 }
 
-async function geocodeWithModel(address) {
+/**
+ * Ask by NAME, not by street address.
+ *
+ * deepseek-v4-pro is a reasoning model and reasoning is billed against
+ * max_tokens. Handed a house-numbered address it deliberates about which exact
+ * building is meant until it exhausts whatever budget you give it -- measured
+ * at 2000/2000 and then 4000/4000 reasoning tokens, returning empty content
+ * both times. Handed a recognisable place name it answers in ~56 tokens. So
+ * the name leads and the address only contributes its district.
+ */
+async function geocodeWithModel(name, address) {
+  const district = ((address || '').match(
+    /(Quận\s*[\wÀ-ỹ]+|Q\.?\s*\d+|Thủ Đức|Bình Thạnh|Phú Nhuận|Tân Bình|Gò Vấp|Bình Tân)/i
+  ) || [''])[0];
+
   const system = [
-    'Bạn là công cụ tra toạ độ cho các địa điểm ở Sài Gòn (TP.HCM, Việt Nam).',
-    'Từ địa chỉ được cho, ước lượng toạ độ chính xác nhất có thể.',
-    'Nếu không đủ thông tin để xác định, trả về null cho cả hai.',
-    'Chỉ trả về JSON: {"lat": number|null, "lng": number|null}',
+    'Bạn là từ điển toạ độ Sài Gòn (TP.HCM). Tra nhanh, KHÔNG suy luận dài.',
+    'Cho toạ độ gần đúng ở mức con đường. Không cần chính xác tuyệt đối.',
+    'Nếu không biết chỗ đó, trả null cho cả hai. Đừng đoán toạ độ trung tâm thành phố.',
+    'Trả về DUY NHẤT một object JSON: {"lat": number|null, "lng": number|null}',
   ].join('\n');
+
+  const query = [name, district].filter(Boolean).join(', ') || address;
 
   try {
     const parsed = await callJson({
       system,
-      messages: [{ role: 'user', content: address }],
-      maxTokens: 160,
-      temperature: 0,
+      messages: [{ role: 'user', content: query }],
+      maxTokens: 1500,
+      temperature: 0.1,
     });
     const lat = Number(parsed.lat);
     const lng = Number(parsed.lng);
-    if (inSaigon(lat, lng)) return { lat, lng, display: address, source: 'ai' };
+    if (inSaigon(lat, lng)) return { lat, lng, display: query, source: 'ai' };
   } catch (err) {
     console.error('[proxy] model geocode failed:', err?.message || err);
   }
@@ -215,7 +239,7 @@ async function taskQuery(body) {
     '- "note": một câu tiếng Việt tối đa 70 ký tự, nói bạn hiểu họ muốn gì.',
     '- Không bịa nhãn ngoài danh sách trên.',
     '',
-    'Trả về DUY NHẤT: {"category":"","moods":[],"maxKm":0,"status":"all","keywords":[],"note":""}',
+    'Trả về DUY NHẤT một object JSON: {"category":"","moods":[],"maxKm":0,"status":"all","keywords":[],"note":""}',
   ].join('\n');
 
   const parsed = await callJson({
@@ -266,7 +290,7 @@ async function taskSuggest(body) {
     '- Chỗ có "daDi": true là đã ghé rồi — vẫn được gợi ý nhưng xếp sau, trừ khi rất hợp.',
     '- "reason": một câu tiếng Việt tối đa 90 ký tự, nói vì sao hợp.',
     '',
-    'Trả về DUY NHẤT: {"picks":[{"id":"","reason":""}]}',
+    'Trả về DUY NHẤT một object JSON: {"picks":[{"id":"","reason":""}]}',
   ].join('\n');
 
   const user =
