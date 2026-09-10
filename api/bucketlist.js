@@ -99,7 +99,7 @@ async function taskNormalize(body) {
   const parsed = await callJson({
     system,
     messages: [{ role: 'user', content: user }],
-    maxTokens: 700,
+    maxTokens: 4000,
     temperature: 0.2,
   });
 
@@ -203,7 +203,7 @@ async function geocodeWithModel(name, address) {
     const parsed = await callJson({
       system,
       messages: [{ role: 'user', content: query }],
-      maxTokens: 1500,
+      maxTokens: 3000,
       temperature: 0.1,
     });
     const lat = Number(parsed.lat);
@@ -245,7 +245,7 @@ async function taskQuery(body) {
   const parsed = await callJson({
     system,
     messages: [{ role: 'user', content: q }],
-    maxTokens: 400,
+    maxTokens: 2500,
     temperature: 0.1,
   });
 
@@ -302,7 +302,7 @@ async function taskSuggest(body) {
     parsed = await callJson({
       system,
       messages: [{ role: 'user', content: user }],
-      maxTokens: 900,
+      maxTokens: 3500,
       temperature: 0.4,
     });
   } catch (err) {
@@ -342,7 +342,7 @@ async function taskChat(body) {
     }))),
   ].join('\n');
 
-  const text = await callDeepSeek({ system, messages, maxTokens: 1200, temperature: 0.6 });
+  const text = await callDeepSeek({ system, messages, maxTokens: 3000, temperature: 0.6 });
   return { text };
 }
 

@@ -84,6 +84,7 @@ export async function callDeepSeek({
   maxTokens = 2000,
   temperature = 0.7,
   jsonMode = false,
+  withMeta = false,
 }) {
   const key = process.env.DEEPSEEK_API_KEY;
   if (!key) throw new Error('missing_api_key');
@@ -111,9 +112,10 @@ export async function callDeepSeek({
   }
 
   const data = await res.json();
-  const text = data?.choices?.[0]?.message?.content;
+  const choice = data?.choices?.[0];
+  const text = choice?.message?.content;
   if (typeof text !== 'string') throw new Error('deepseek_empty_response');
-  return text;
+  return withMeta ? { text, finish: String(choice?.finish_reason || '') } : text;
 }
 
 /**
@@ -175,8 +177,9 @@ export class JsonCallError extends Error {
   }
 }
 
-export async function callJson({ system, messages, maxTokens = 800, temperature = 0.2 }) {
+export async function callJson({ system, messages, maxTokens = 4000, temperature = 0.2 }) {
   let lastRaw = '';
+  let truncated = false;
 
   for (const attempt of ['json', 'plain']) {
     const sys = attempt === 'json'
@@ -184,17 +187,24 @@ export async function callJson({ system, messages, maxTokens = 800, temperature 
       : system + '\n\nQUAN TRONG: chi in ra JSON thuan, bat dau bang { va ket thuc bang }. ' +
         'Khong them loi dan, khong giai thich, khong dung markdown code fence.';
     try {
-      const text = await callDeepSeek({
+      const { text, finish } = await callDeepSeek({
         system: sys,
         messages,
-        maxTokens,
+        maxTokens: truncated ? maxTokens * 2 : maxTokens,
         temperature,
         jsonMode: attempt === 'json',
+        withMeta: true,
       });
       lastRaw = text;
       const parsed = extractJson(text);
       if (parsed && typeof parsed === 'object') return parsed;
-      console.error(`[proxy] ${attempt} attempt returned unparseable output:`, String(text).slice(0, 200));
+      // finish==='length' means the answer was cut off, not that the model was
+      // confused -- reasoning tokens are billed against max_tokens and this
+      // model expands to fill whatever ceiling it is given. Retry with more
+      // room. max_tokens is a ceiling, not an allocation, so this costs nothing
+      // unless it is actually used.
+      if (finish === 'length') truncated = true;
+      console.error(`[proxy] ${attempt} attempt unparseable (finish=${finish}):`, String(text).slice(0, 200));
     } catch (err) {
       // A transport/API failure should surface as-is rather than as a parse error.
       if (attempt === 'plain') throw err;
