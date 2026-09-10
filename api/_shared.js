@@ -90,7 +90,7 @@ export async function callDeepSeek({
   if (!key) throw new Error('missing_api_key');
 
   const body = {
-    model: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
+    model: process.env.DEEPSEEK_MODEL || 'deepseek-flash',
     messages: [{ role: 'system', content: system }, ...messages],
     max_tokens: maxTokens,
     temperature,
